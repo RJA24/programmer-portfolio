@@ -211,7 +211,6 @@ if st.session_state.page == "home":
     
     col1, col2 = st.columns([1, 2.5])
     with col1:
-        # Removed the border container, rendering the circular image directly
         st.markdown(f"""
             <img src="https://github.com/RJA24/my-professional-portfolio/blob/main/Profile.png?raw=true" class="profile-img">
             """, unsafe_allow_html=True)
@@ -235,6 +234,38 @@ if st.session_state.page == "home":
         with st.container(border=True):
             st.subheader(":material/radar: Core Competencies")
             st.plotly_chart(fig, use_container_width=True)
+
+        with st.container(border=True):
+            st.subheader(":material/contact_mail: Contact Me")
+            
+            with st.form("contact_form", clear_on_submit=True):
+                name = st.text_input("Your Name")
+                email = st.text_input("Your Email")
+                message = st.text_area("Your Message", height=100)
+                
+                submitted = st.form_submit_button("Send Message", type="primary", use_container_width=True)
+                
+                if submitted:
+                    if not name or not email or not message:
+                        st.warning("⚠️ Please fill out all fields before sending.")
+                    else:
+                        with st.spinner("Transmitting to backend..."):
+                            try:
+                                # Format the email
+                                email_body = f"Name: {name}\nEmail: {email}\n\nMessage:\n{message}"
+                                msg = MIMEText(email_body)
+                                msg['Subject'] = f"New Portfolio Message from {name}"
+                                msg['From'] = st.secrets["EMAIL_USER"]
+                                msg['To'] = "ronjay.1204@gmail.com"
+                                
+                                # Connect to Gmail's secure SMTP server and send
+                                with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
+                                    server.login(st.secrets["EMAIL_USER"], st.secrets["EMAIL_PASS"])
+                                    server.sendmail(st.secrets["EMAIL_USER"], "ronjay.1204@gmail.com", msg.as_string())
+                                    
+                                st.success("✅ Message successfully sent! I will get back to you shortly.")
+                            except Exception as e:
+                                st.error(f"🚨 Server error: {e}")
 
     with c2:
         with st.container(border=True):
@@ -282,6 +313,21 @@ if st.session_state.page == "home":
                 <span class="tech-pill">UI/UX Auditing</span>
             </div>
             """, unsafe_allow_html=True)
+            
+        with st.container(border=True):
+            st.subheader(":material/forum: Frequently Asked Questions")
+            
+            with st.expander("Working hours and timezone?"):
+                st.write("I am based in the Philippines (GMT+8). I offer highly flexible working hours and can easily overlap with your team's local timezone to ensure seamless, real-time communication.")
+                
+            with st.expander("How do you handle data privacy and security?"):
+                st.write("Coming from a background in provincial health data management, I adhere to strict data privacy protocols. I design my applications with role-based access control, secure hashed credentials, and encrypted database connections to ensure sensitive metrics are always protected.")
+                
+            with st.expander("Can you handle end-to-end development?"):
+                st.write("Absolutely. I manage the entire software lifecycle—from architecting the initial database schema and building automated ETL pipelines, to designing the frontend UI and deploying the final web application.")
+
+            with st.expander("Approach to AI-assisted coding?"):
+                st.write("I leverage AI as a force multiplier to rapidly construct boilerplate logic, troubleshoot complex SQL queries, and optimize edge-case debugging. This allows me to work faster and focus my engineering efforts on secure, high-level system architecture.")
 
 # ==========================================
 # PAGE 2: PROJECTS & APPLICATIONS
