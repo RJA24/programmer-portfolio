@@ -2,6 +2,8 @@
 import streamlit as st
 import plotly.express as px
 import pandas as pd
+import smtplib
+from email.mime.text import MIMEText
 
 st.set_page_config(page_title="Ron Jay C. Ayup | Developer Portfolio", layout="wide", page_icon=":material/code:")
 
@@ -218,17 +220,35 @@ if st.session_state.page == "home":
 
         with st.container(border=True):
             st.subheader(":material/contact_mail: Contact Me")
-            st.write("I am currently open for new projects, remote roles, and collaborations. Feel free to reach out directly to discuss data systems, dashboard architecture, or software engineering opportunities.")
             
-            st.markdown("<br>", unsafe_allow_html=True)
-            
-            # The bulletproof native Streamlit link button
-            st.link_button(
-                "Send me an Email", 
-                "mailto:ronjay.1204@gmail.com", 
-                type="primary", 
-                use_container_width=True
-            )
+            with st.form("contact_form", clear_on_submit=True):
+                name = st.text_input("Your Name")
+                email = st.text_input("Your Email")
+                message = st.text_area("Your Message", height=100)
+                
+                submitted = st.form_submit_button("Send Message", type="primary", use_container_width=True)
+                
+                if submitted:
+                    if not name or not email or not message:
+                        st.warning("⚠️ Please fill out all fields before sending.")
+                    else:
+                        with st.spinner("Transmitting to backend..."):
+                            try:
+                                # Format the email
+                                email_body = f"Name: {name}\nEmail: {email}\n\nMessage:\n{message}"
+                                msg = MIMEText(email_body)
+                                msg['Subject'] = f"New Portfolio Message from {name}"
+                                msg['From'] = st.secrets["EMAIL_USER"]
+                                msg['To'] = "ronjay.1204@gmail.com"
+                                
+                                # Connect to Gmail's secure SMTP server and send
+                                with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
+                                    server.login(st.secrets["EMAIL_USER"], st.secrets["EMAIL_PASS"])
+                                    server.sendmail(st.secrets["EMAIL_USER"], "ronjay.1204@gmail.com", msg.as_string())
+                                    
+                                st.success("✅ Message successfully sent! I will get back to you shortly.")
+                            except Exception as e:
+                                st.error(f"🚨 Server error: {e}")
 
     with c2:
         with st.container(border=True):
