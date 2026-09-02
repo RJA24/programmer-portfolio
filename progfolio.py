@@ -233,14 +233,19 @@ if st.session_state.page == "home":
                         st.warning("⚠️ Please fill out all fields before sending.")
                     else:
                         with st.spinner("Sending..."):
-                            # Send the data to FormSubmit's AJAX endpoint in the background
+                            # Send the data as strict JSON with required headers
                             response = requests.post(
                                 "https://formsubmit.co/ajax/ronjay.1204@gmail.com",
-                                data={
+                                json={
                                     "name": name,
                                     "email": email,
                                     "message": message,
-                                    "_captcha": "false" # Disables the annoying captcha redirect
+                                    "_captcha": "false",
+                                    "_subject": f"New Portfolio Message from {name}!" # Adds a clean subject line
+                                },
+                                headers={
+                                    'Accept': 'application/json',
+                                    'Content-Type': 'application/json'
                                 }
                             )
                             
