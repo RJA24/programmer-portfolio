@@ -143,13 +143,18 @@ st.markdown("""
     /* Standard Buttons */
     .stButton>button[kind="primary"], [data-testid="stDownloadButton"] button { 
         background-color: #0ea5e9 !important;
-        color: white !important; 
+        color: #ffffff !important; 
         border-radius: 6px !important; 
         border: none !important;
         transition: 0.2s ease !important;
         font-weight: 600 !important;
-        font-color: #hhhhhh !important;
     }
+    
+    /* FIX: Force all internal text elements to be white */
+    .stButton>button[kind="primary"] *, [data-testid="stDownloadButton"] button * {
+        color: #ffffff !important;
+    }
+
     .stButton>button[kind="primary"]:hover, [data-testid="stDownloadButton"] button:hover {
         background-color: #0284c7 !important;
         box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3) !important;
