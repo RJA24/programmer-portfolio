@@ -148,7 +148,7 @@ st.markdown("""
         border: none !important;
         transition: 0.2s ease !important;
         font-weight: 600 !important;
-        font-color: #f8fafc !important;
+        font-color: #hhhhhh !important;
     }
     .stButton>button[kind="primary"]:hover, [data-testid="stDownloadButton"] button:hover {
         background-color: #0284c7 !important;
