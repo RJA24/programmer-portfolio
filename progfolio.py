@@ -159,7 +159,7 @@ st.markdown("""
     
     /* Profile Image Treatment */
     .profile-img {
-        background-color: #ffffff;
+        background-color: #edf8fc;
         border-radius: 50%;
         border: 3px solid #0ea5e9;
         box-shadow: 0 0 25px rgba(14, 165, 233, 0.3);
