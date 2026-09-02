@@ -2,6 +2,7 @@
 import streamlit as st
 import plotly.express as px
 import pandas as pd
+import requests
 
 st.set_page_config(page_title="Ron Jay C. Ayup | Developer Portfolio", layout="wide", page_icon=":material/code:")
 
@@ -219,18 +220,34 @@ if st.session_state.page == "home":
         with st.container(border=True):
             st.subheader(":material/contact_mail: Contact Me")
             
-            # The HTML must hug the left wall so Markdown doesn't treat it as a code block!
-            contact_form = """<form action="https://formsubmit.co/ronjay.1204@gmail.com" method="POST">
-            <input type="hidden" name="_captcha" value="false">
-            <input type="hidden" name="_next" value="https://ronjay-progfolio.streamlit.app/">
-            <input type="hidden" name="_autoresponse" value="Thanks for reaching out! I will get back to you as soon as I can.">
-            <input type="text" name="name" placeholder="Your Name" required style="width: 100%; padding: 10px; margin-bottom: 12px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); background: rgba(15, 23, 42, 0.6); color: white; font-family: sans-serif;">
-            <input type="email" name="email" placeholder="Your Email" required style="width: 100%; padding: 10px; margin-bottom: 12px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); background: rgba(15, 23, 42, 0.6); color: white; font-family: sans-serif;">
-            <textarea name="message" placeholder="Your Message" required style="width: 100%; padding: 10px; margin-bottom: 12px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); height: 100px; background: rgba(15, 23, 42, 0.6); color: white; font-family: sans-serif;"></textarea>
-            <button type="submit" style="padding: 10px 20px; border-radius: 6px; background-color: #0ea5e9; color: white; border: none; cursor: pointer; width: 100%; font-weight: 600; font-size: 1rem; transition: 0.2s ease;">Send Message</button>
-            </form>"""
-            
-            st.markdown(contact_form, unsafe_allow_html=True)
+            # Create a native Streamlit form
+            with st.form("contact_form", clear_on_submit=True):
+                name = st.text_input("Your Name")
+                email = st.text_input("Your Email")
+                message = st.text_area("Your Message", height=100)
+                
+                submitted = st.form_submit_button("Send Message", type="primary", use_container_width=True)
+                
+                if submitted:
+                    if not name or not email or not message:
+                        st.warning("⚠️ Please fill out all fields before sending.")
+                    else:
+                        with st.spinner("Sending..."):
+                            # Send the data to FormSubmit's AJAX endpoint in the background
+                            response = requests.post(
+                                "https://formsubmit.co/ajax/ronjay.1204@gmail.com",
+                                data={
+                                    "name": name,
+                                    "email": email,
+                                    "message": message,
+                                    "_captcha": "false" # Disables the annoying captcha redirect
+                                }
+                            )
+                            
+                            if response.status_code == 200:
+                                st.success("✅ Message received! I will get back to you shortly.")
+                            else:
+                                st.error("🚨 Transmission failed. Please email me directly.")
 
     with c2:
         with st.container(border=True):
