@@ -218,18 +218,17 @@ if st.session_state.page == "home":
 
         with st.container(border=True):
             st.subheader(":material/contact_mail: Contact Me")
+            st.write("I am currently open for new projects, remote roles, and collaborations. Feel free to reach out directly to discuss data systems, dashboard architecture, or software engineering opportunities.")
             
-            # target="_blank" is the secret to preventing Streamlit from refreshing!
-            contact_form = """<form action="https://formsubmit.co/ronjay.1204@gmail.com" method="POST" target="_blank">
-            <input type="hidden" name="_captcha" value="false">
-            <input type="hidden" name="_next" value="https://ronjay-progfolio.streamlit.app/">
-            <input type="text" name="name" placeholder="Your Name" required style="width: 100%; padding: 10px; margin-bottom: 12px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); background: rgba(15, 23, 42, 0.6); color: white; font-family: sans-serif;">
-            <input type="email" name="email" placeholder="Your Email" required style="width: 100%; padding: 10px; margin-bottom: 12px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); background: rgba(15, 23, 42, 0.6); color: white; font-family: sans-serif;">
-            <textarea name="message" placeholder="Your Message" required style="width: 100%; padding: 10px; margin-bottom: 12px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); height: 100px; background: rgba(15, 23, 42, 0.6); color: white; font-family: sans-serif;"></textarea>
-            <button type="submit" style="padding: 10px 20px; border-radius: 6px; background-color: #0ea5e9; color: white; border: none; cursor: pointer; width: 100%; font-weight: 600; font-size: 1rem; transition: 0.2s ease;">Send Message</button>
-            </form>"""
+            st.markdown("<br>", unsafe_allow_html=True)
             
-            st.markdown(contact_form, unsafe_allow_html=True)
+            # The bulletproof native Streamlit link button
+            st.link_button(
+                "Send me an Email", 
+                "mailto:ronjay.1204@gmail.com", 
+                type="primary", 
+                use_container_width=True
+            )
 
     with c2:
         with st.container(border=True):
