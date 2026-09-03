@@ -80,7 +80,6 @@ st.markdown("""
     /* SLEEK SIDEBAR NAVIGATION */
     /* ---------------------------------------------------- */
     section[data-testid="stSidebar"] .stButton > button {
-        justify-content: flex-start !important;
         background-color: transparent !important;
         border: none !important;
         box-shadow: none !important;
