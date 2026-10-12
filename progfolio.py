@@ -189,6 +189,14 @@ st.markdown("""
         margin: 0 5px 8px 0;
         font-weight: 500;
     }
+
+    /* Consistent project and experience typography */
+    .tech-stack { display:block; color:#7dd3fc; font-size:.92rem; font-weight:500; line-height:1.7; margin:-2px 0 14px; }
+    .project-status { display:inline-block; color:#cbd5e1; background:rgba(56,189,248,.10); border:1px solid rgba(56,189,248,.24); padding:4px 10px; border-radius:99px; font-size:.82rem; font-weight:600; margin-bottom:10px; }
+    .job-title { color:#f8fafc; font-size:1.4rem; font-weight:750; }
+    .job-company { color:#7dd3fc; font-weight:600; margin-top:5px; }
+    .job-date { color:#94a3b8; font-size:.9rem; margin-bottom:14px; }
+    @media (max-width:640px) { .typing-text { font-size:1rem; max-width:100%; } .profile-img { width:210px; height:210px; } }
     </style>
     """, unsafe_allow_html=True)
 
@@ -220,7 +228,7 @@ if st.session_state.page == "home":
     col1, col2 = st.columns([1, 2.5])
     with col1:
         st.markdown(f"""
-            <img src="https://github.com/RJA24/my-professional-portfolio/blob/main/Profile.png?raw=true" class="profile-img">
+            <img src="https://raw.githubusercontent.com/RJA24/programmer-portfolio/main/Profile.png" class="profile-img">
             """, unsafe_allow_html=True)
 
     with col2:
@@ -347,6 +355,24 @@ elif st.session_state.page == "projects":
     
     st.markdown("### Tier 1: Enterprise Data Systems")
     
+    # --- ABRA NIP MONITORING INFORMATION SYSTEM ---
+    with st.container(border=True):
+        st.header("Abra NIP Monitoring Information System")
+        st.markdown("<span class='project-status'>Provincial Public Health System · v5.22.3</span>", unsafe_allow_html=True)
+        st.markdown("<span class='tech-stack'>Python • Streamlit • Pandas • Plotly • Excel Reporting Workbooks • Database Integrations</span>", unsafe_allow_html=True)
+        st.write(
+            "Designed and developed a provincial immunization monitoring platform supporting "
+            "27 Rural Health Units (RHUs) across Abra. The system brings together campaign "
+            "monitoring, reporting workflows, administrative controls, and data validation "
+            "for Measles-Rubella and School-Based Immunization activities."
+        )
+        st.markdown(
+            "**Key capabilities:** Offline-first SBI reporting through standardized Excel "
+            "workbooks organized by activity date, school, and grade; RHU workbook uploads "
+            "and corrections; campaign and submission monitoring; role-based access; "
+            "and summaries formatted for VaccTrack reconciliation."
+        )
+
     # --- PESU PORTAL ---
     with st.container(border=True):
         st.header("Abra PESU Surveillance Portal")
@@ -375,6 +401,24 @@ elif st.session_state.page == "projects":
     st.markdown("<br>", unsafe_allow_html=True)
     st.markdown("### Tier 2: Software Engineering")
     
+    # --- SSS BANGUED AUTO FOD ---
+    with st.container(border=True):
+        st.header("SSS Auto FOD — Document Archiving & Retrieval System")
+        st.markdown("<span class='project-status'>Delivered Client Project · SSS Bangued</span>", unsafe_allow_html=True)
+        st.markdown("<span class='tech-stack'>Python • Excel Processing • Local Data Storage • Windows Desktop Deployment</span>", unsafe_allow_html=True)
+        st.write(
+            "Built and delivered a custom document archiving and retrieval application "
+            "for the SSS Bangued Branch. It converts transmittal spreadsheets into "
+            "organized document records and connects digital searches with physical "
+            "shelf and storage locations."
+        )
+        st.markdown(
+            "**Key capabilities:** Automated transmittal import and document classification; "
+            "searchable records and shelf visualization; retrieval workflows; "
+            "and duplicate-transmittal detection to help prevent repeated imports."
+        )
+        st.caption("Privately deployed for a client; source code and client records are not shared publicly.")
+
     # --- SOFTWARE PROJECTS ---
     c_sw1, c_sw2 = st.columns(2)
     with c_sw1:
