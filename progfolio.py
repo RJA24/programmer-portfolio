@@ -1,483 +1,645 @@
-# MUST BE FIRST
-import streamlit as st
-import plotly.express as px
-import pandas as pd
+"""Ron Jay C. Ayup — Streamlit Developer Portfolio.
+
+Run locally: streamlit run progfolio.py
+Requires: streamlit, pandas, plotly (see requirements.txt).
+"""
+
 import smtplib
 from email.mime.text import MIMEText
+from pathlib import Path
 
-st.set_page_config(page_title="Ron Jay C. Ayup | Developer Portfolio", layout="wide", page_icon=":material/code:")
+import pandas as pd
+import plotly.express as px
+import streamlit as st
 
-# --- DATA & ASSETS ---
-# Upgraded radar chart focusing on strict technical competencies
-df = pd.DataFrame(dict(
-    r=[90, 85, 80, 85, 75, 80],
-    theta=['Data Engineering & ETL', 'Full-Stack Development', 'Geospatial Mapping', 'Database Admin (SQL/NoSQL)', 'Mobile App Dev', 'UI/UX & Frontend'],
-    Details=[
-        'Building automated parsers and data pipelines with Pandas',
-        'Developing end-to-end web applications using Streamlit & Python',
-        'Plotly choropleth maps, custom GeoJSON, and coordinate manipulation',
-        'Managing Supabase (PostgreSQL) and live Google Sheets APIs',
-        'Cross-platform mobile development using React Native & Expo',
-        'Designing intuitive interfaces, AgGrid tables, and digital assets'
-    ]
-))
 
-fig = px.line_polar(
-    df, 
-    r='r', 
-    theta='theta', 
-    line_close=True,
-    hover_data={'r': False, 'theta': False, 'Details': True}
+# Streamlit configuration must precede all other Streamlit calls.
+st.set_page_config(
+    page_title="Ron Jay C. Ayup | Developer Portfolio",
+    page_icon=":material/code:",
+    layout="wide",
 )
 
-fig.update_traces(
-    fill='toself', 
-    line_color='#0ea5e9', # Electric Blue
-    fillcolor='rgba(14, 165, 233, 0.2)',
-    mode='lines+markers', 
-    marker=dict(size=8, color='#38bdf8', line=dict(color='white', width=1)),
-    hovertemplate='<b>%{theta}</b><br><br>%{customdata[0]}<extra></extra>'
-)
+BASE_DIR = Path(__file__).resolve().parent
 
-fig.update_layout(
-    paper_bgcolor='rgba(0,0,0,0)',
-    plot_bgcolor='rgba(0,0,0,0)',
-    font_color="#f8fafc",
-    polar=dict(
-        bgcolor='rgba(0,0,0,0)', 
-        radialaxis=dict(visible=False),
-        angularaxis=dict(linewidth=1, linecolor='rgba(255,255,255,0.1)')
-    ),
-    margin=dict(l=40, r=40, t=20, b=20),
-    height=350,
-    hoverlabel=dict(
-        bgcolor="#0f172a",
-        font_size=14,
-        font_family="sans-serif",
-        bordercolor="#0ea5e9"
-    )
-)
-
-# --- RESUME SETUP ---
-try:
-    with open("resume.pdf", "rb") as pdf_file:
-        resume_bytes = pdf_file.read()
-except FileNotFoundError:
-    resume_bytes = b"Please upload your resume.pdf to the repository to enable this download."
-
-# --- MODERN DEVELOPER CSS ---
-st.markdown("""
+# -----------------------------------------------------------------------------
+# Visual theme
+# -----------------------------------------------------------------------------
+st.markdown(
+    """
     <style>
-    /* Dark Slate Background */
     [data-testid="stAppViewContainer"] {
         background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
         background-attachment: fixed;
         color: #f8fafc;
     }
-    [data-testid="stSidebar"] { background-color: rgba(15, 23, 42, 0.95); border-right: 1px solid rgba(255,255,255,0.05); }
-    
-    /* ---------------------------------------------------- */
-    /* SLEEK SIDEBAR NAVIGATION */
-    /* ---------------------------------------------------- */
+    [data-testid="stSidebar"] {
+        background: rgba(15, 23, 42, .97);
+        border-right: 1px solid rgba(255, 255, 255, .07);
+    }
+    [data-testid="stHeader"] { background: transparent; }
+    footer { visibility: hidden; }
+
+    h1 { color: #f8fafc !important; font-weight: 800 !important; letter-spacing: -.5px; }
+    h2, h3 { color: #f8fafc !important; font-weight: 700 !important; }
+    h4 { color: #cbd5e1 !important; }
+    p, li { color: #cbd5e1; line-height: 1.7; }
+
+    /* Navigation */
     section[data-testid="stSidebar"] .stButton > button {
-        background-color: transparent !important;
+        background: transparent !important;
         border: none !important;
         box-shadow: none !important;
-        padding: 8px 12px !important;
-        border-radius: 6px !important;
+        border-radius: 8px !important;
         width: 100% !important;
-        transition: all 0.2s ease !important;
-        
+        padding: 8px 12px !important;
+        transition: background .2s ease !important;
+    }
+    section[data-testid="stSidebar"] .stButton > button:hover {
+        background: rgba(14, 165, 233, .12) !important;
     }
     section[data-testid="stSidebar"] .stButton > button div[data-testid="stMarkdownContainer"] {
         display: flex !important;
-        width: 100% !important;
         justify-content: flex-start !important;
+        width: 100% !important;
     }
     section[data-testid="stSidebar"] .stButton > button p {
+        color: #cbd5e1 !important;
         font-size: 15px !important;
         font-weight: 500 !important;
-        color: #cbd5e1 !important;
-        margin: 0 !important;
         text-align: left !important;
+        margin: 0 !important;
     }
-    section[data-testid="stSidebar"] .stButton > button:hover {
-        background-color: rgba(14, 165, 233, 0.1) !important;
+    section[data-testid="stSidebar"] .stButton > button:hover p { color: #38bdf8 !important; }
+
+    /* Glassy cards */
+    div[data-testid="stVerticalBlockBorderWrapper"] {
+        background: rgba(30, 41, 59, .35) !important;
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, .09) !important;
+        border-radius: 14px !important;
+        padding: 16px !important;
+        box-shadow: 0 4px 14px rgba(0, 0, 0, .13);
     }
-    section[data-testid="stSidebar"] .stButton > button:hover p {
-        color: #38bdf8 !important;
-    }
-    
-    /* Typing Animation for Subtitle */
     .typing-text {
+        display: inline-block;
         overflow: hidden;
+        max-width: 100%;
         border-right: 3px solid #0ea5e9;
         white-space: nowrap;
-        animation: typing 3.5s steps(45, end) forwards, blink 0.8s step-end infinite;
-        font-size: 1.4rem;
+        animation: typing 3.5s steps(43, end) forwards, blink .8s step-end infinite;
+        font-size: clamp(1rem, 2vw, 1.4rem);
         font-weight: 600;
         color: #38bdf8;
-        margin-top: -15px;
-        margin-bottom: 20px;
-        max-width: fit-content;
+        margin-top: -12px;
+        margin-bottom: 16px;
     }
-    
     @keyframes typing { from { width: 0; } to { width: 100%; } }
     @keyframes blink { from, to { border-color: transparent; } 50% { border-color: #0ea5e9; } }
-    
-    /* Sleek Glassmorphism Containers */
-    div[data-testid="stVerticalBlockBorderWrapper"] {
-        background: rgba(30, 41, 59, 0.3) !important;
-        backdrop-filter: blur(12px) !important;
-        border: 1px solid rgba(255, 255, 255, 0.05) !important;
-        border-radius: 12px !important;
-        padding: 20px !important;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    }
-    
-    /* Headers & Text */
-    h1 { color: #f8fafc !important; font-weight: 800 !important; letter-spacing: -0.5px; }
-    h2, h3 { color: #f8fafc !important; font-weight: 700; }
-    h4 { color: #cbd5e1 !important; font-size: 1.1rem !important; margin-bottom: 5px !important;}
-    p, li { color: #94a3b8; line-height: 1.7; font-size: 1.05rem;}
-    
-    /* Standard Buttons */
-    .stButton>button[kind="primary"], [data-testid="stDownloadButton"] button { 
-        background-color: #0ea5e9 !important;
-        color: #ffffff !important; 
-        border-radius: 6px !important; 
-        border: none !important;
-        transition: 0.2s ease !important;
-        font-weight: 600 !important;
-    }
-    
-    /* FIX: Force all internal text elements to be white */
-    .stButton>button[kind="primary"] *, [data-testid="stDownloadButton"] button * {
-        color: #ffffff !important;
-    }
 
-    .stButton>button[kind="primary"]:hover, [data-testid="stDownloadButton"] button:hover {
-        background-color: #0284c7 !important;
-        box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3) !important;
-    }
-
-    [data-testid="stHeader"] { background: rgba(0,0,0,0); }
-    footer { visibility: hidden; }
-    
-    /* Profile Image Treatment */
-    .profile-img {
-        background-color: #edf8fc;
-        border-radius: 50%;
-        border: 3px solid #0ea5e9;
-        box-shadow: 0 0 25px rgba(14, 165, 233, 0.3);
-        width: 260px;
-        height: 260px;
-        object-fit: cover;
-        margin: 0 auto;
-        display: block;
-    }
-
-    /* Tech Badges (Pills) */
     .tech-pill {
         display: inline-block;
-        background: rgba(14, 165, 233, 0.1);
-        border: 1px solid rgba(14, 165, 233, 0.3);
-        color: #38bdf8;
+        background: rgba(14, 165, 233, .12);
+        border: 1px solid rgba(14, 165, 233, .28);
+        color: #7dd3fc;
         padding: 5px 12px;
         border-radius: 20px;
-        font-size: 0.85rem;
+        font-size: .84rem;
         margin: 0 5px 8px 0;
         font-weight: 500;
     }
+    .tech-stack {
+        display: block;
+        color: #7dd3fc;
+        font-size: .91rem;
+        font-weight: 500;
+        line-height: 1.7;
+        margin: 0 0 14px;
+    }
+    .project-status {
+        display: inline-block;
+        color: #cbd5e1;
+        background: rgba(56, 189, 248, .10);
+        border: 1px solid rgba(56, 189, 248, .24);
+        padding: 4px 11px;
+        border-radius: 99px;
+        font-size: .82rem;
+        font-weight: 600;
+        margin-bottom: 10px;
+    }
+    .job-title { color: #f8fafc; font-size: 1.35rem; font-weight: 750; }
+    .job-company { color: #7dd3fc; font-weight: 600; margin-top: 4px; }
+    .job-date { color: #94a3b8; font-size: .9rem; margin: 2px 0 14px; }
 
-    /* Consistent project and experience typography */
-    .tech-stack { display:block; color:#7dd3fc; font-size:.92rem; font-weight:500; line-height:1.7; margin:-2px 0 14px; }
-    .project-status { display:inline-block; color:#cbd5e1; background:rgba(56,189,248,.10); border:1px solid rgba(56,189,248,.24); padding:4px 10px; border-radius:99px; font-size:.82rem; font-weight:600; margin-bottom:10px; }
-    .job-title { color:#f8fafc; font-size:1.4rem; font-weight:750; }
-    .job-company { color:#7dd3fc; font-weight:600; margin-top:5px; }
-    .job-date { color:#94a3b8; font-size:.9rem; margin-bottom:14px; }
-    @media (max-width:640px) { .typing-text { font-size:1rem; max-width:100%; } .profile-img { width:210px; height:210px; } }
+    .stButton > button[kind="primary"], [data-testid="stDownloadButton"] button {
+        background: #0ea5e9 !important;
+        color: white !important;
+        border: 0 !important;
+        border-radius: 7px !important;
+        font-weight: 600 !important;
+    }
+    .stButton > button[kind="primary"] *, [data-testid="stDownloadButton"] button * {
+        color: white !important;
+    }
+    .stButton > button[kind="primary"]:hover, [data-testid="stDownloadButton"] button:hover {
+        background: #0284c7 !important;
+    }
+    @media (max-width: 640px) {
+        .typing-text { font-size: 1rem; letter-spacing: -.3px; }
+        h1 { font-size: 2rem !important; }
+    }
     </style>
-    """, unsafe_allow_html=True)
+    """,
+    unsafe_allow_html=True,
+)
 
-# --- SIDEBAR NAVIGATION ---
+
+# -----------------------------------------------------------------------------
+# Helpers
+# -----------------------------------------------------------------------------
+def pills(values):
+    """Display trusted, locally defined technology labels."""
+    from html import escape
+
+    spans = "".join(f'<span class="tech-pill">{escape(value)}</span>' for value in values)
+    st.markdown(f'<div style="margin-bottom: 8px">{spans}</div>', unsafe_allow_html=True)
+
+
+def project_card(title, stack, summary, highlights=None, status=None, url=None, note=None):
+    """Consistent project presentation with optional context and external link."""
+    from html import escape
+
+    with st.container(border=True):
+        st.subheader(title)
+        if status:
+            st.markdown(
+                f'<span class="project-status">{escape(status)}</span>',
+                unsafe_allow_html=True,
+            )
+        st.markdown(
+            f'<span class="tech-stack">{escape(stack)}</span>',
+            unsafe_allow_html=True,
+        )
+        st.write(summary)
+        if highlights:
+            st.markdown(f"**Key capabilities:** {highlights}")
+        if url:
+            st.link_button("View Project", url, icon=":material/open_in_new:")
+        if note:
+            st.caption(note)
+
+
+def experience_card(position, organization, dates, responsibilities):
+    from html import escape
+
+    with st.container(border=True):
+        st.markdown(
+            f'<div class="job-title">{escape(position)}</div>',
+            unsafe_allow_html=True,
+        )
+        st.markdown(
+            f'<div class="job-company">{escape(organization)}</div>',
+            unsafe_allow_html=True,
+        )
+        st.markdown(
+            f'<div class="job-date">{escape(dates)}</div>',
+            unsafe_allow_html=True,
+        )
+        for heading, detail in responsibilities:
+            st.markdown(f"- **{heading}:** {detail}")
+
+
+# -----------------------------------------------------------------------------
+# Sidebar navigation
+# -----------------------------------------------------------------------------
+if "page" not in st.session_state:
+    st.session_state.page = "home"
+
 with st.sidebar:
     st.markdown("### :material/dashboard: Navigation")
-    
-    if st.button("Home / About Me", icon=":material/person:", use_container_width=True): 
+    if st.button("Home / About Me", icon=":material/person:", use_container_width=True):
         st.session_state.page = "home"
-    if st.button("Projects & Apps", icon=":material/terminal:", use_container_width=True): 
+    if st.button("Projects & Apps", icon=":material/terminal:", use_container_width=True):
         st.session_state.page = "projects"
-    if st.button("Professional Experience", icon=":material/work_history:", use_container_width=True): 
+    if st.button("Professional Experience", icon=":material/work_history:", use_container_width=True):
         st.session_state.page = "experience"
-        
-    st.markdown("---")
+
+    st.divider()
     st.markdown("### :material/link: Connect")
     st.markdown(":material/mail: [Email](mailto:ronjay.1204@gmail.com)")
     st.markdown(":material/code: [GitHub](https://github.com/RJA24)")
     st.markdown(":material/work: [LinkedIn](https://www.linkedin.com/in/ron-jay-ayup-a1824b3b3)")
 
-if 'page' not in st.session_state:
-    st.session_state.page = "home"
 
-# ==========================================
-# PAGE 1: HOME (ABOUT ME)
-# ==========================================
+# -----------------------------------------------------------------------------
+# HOME
+# -----------------------------------------------------------------------------
 if st.session_state.page == "home":
-    
-    col1, col2 = st.columns([1, 2.5])
-    with col1:
-        st.markdown(f"""
-            <img src="https://raw.githubusercontent.com/RJA24/programmer-portfolio/main/Profile.png" class="profile-img">
-            """, unsafe_allow_html=True)
+    col_profile, col_intro = st.columns([1, 2.5], gap="large")
+    with col_profile:
+        profile_path = BASE_DIR / "Profile.png"
+        if profile_path.exists():
+            st.image(str(profile_path), width=260)
+        else:
+            st.info("Profile image unavailable.")
 
-    with col2:
+    with col_intro:
         st.title("Ron Jay C. Ayup")
-        st.markdown('<div class="typing-text">Full-Stack Programmer & Data Analyst</div>', unsafe_allow_html=True)
-        
-        st.write("I am a highly adaptable software developer and data analyst specializing in building secure, end-to-end data pipelines and scalable web applications. With a robust background in epidemiology and public health data management, I transform fragmented, high-volume metrics into automated, real-time command centers.")
-        
-        st.write("My expertise lies in architecting complex Streamlit dashboards, engineering automated ETL (Extract, Transform, Load) parsers, managing relational databases (PostgreSQL/Supabase), and deploying dynamic geospatial visualizations. I am actively seeking roles where I can leverage my technical precision to streamline operations, enforce data integrity, and build high-impact digital tools.")
-        
-        st.markdown("<br>", unsafe_allow_html=True)
-        st.download_button("Download Resume (PDF)", icon=":material/download:", data=resume_bytes, file_name="Ron_Jay_Ayup_Resume.pdf", mime="application/pdf", type="primary")
+        st.markdown(
+            '<div class="typing-text">Full-Stack Programmer &amp; Data Analyst</div>',
+            unsafe_allow_html=True,
+        )
+        st.write(
+            "I am a software developer and data analyst specializing in practical, "
+            "end-to-end data systems, automation, and interactive web applications. "
+            "My background in public health data management helps me turn fragmented "
+            "reports and manual workflows into reliable digital tools."
+        )
+        st.write(
+            "I design Streamlit dashboards, build data-cleaning and reporting pipelines, "
+            "work with relational databases and spreadsheet integrations, and deliver "
+            "custom software for real operational needs. My work ranges from provincial "
+            "health information systems to a paid document retrieval solution for a client."
+        )
+        resume_path = BASE_DIR / "resume.pdf"
+        if resume_path.exists():
+            st.download_button(
+                "Download Resume (PDF)",
+                data=resume_path.read_bytes(),
+                file_name="Ron_Jay_Ayup_Resume.pdf",
+                mime="application/pdf",
+                icon=":material/download:",
+                type="primary",
+            )
 
-    st.markdown("<br>", unsafe_allow_html=True)
-    
-    # 2. CORE COMPETENCIES & TECH STACK
-    c1, c2 = st.columns([1, 1])
-    with c1:
+    st.write("")
+    col_left, col_right = st.columns(2, gap="large")
+
+    with col_left:
         with st.container(border=True):
             st.subheader(":material/radar: Core Competencies")
+            skills = pd.DataFrame(
+                {
+                    "r": [90, 85, 80, 85, 75, 80],
+                    "theta": [
+                        "Data Engineering & ETL",
+                        "Full-Stack Development",
+                        "Geospatial Mapping",
+                        "Database Administration",
+                        "Mobile App Development",
+                        "UI/UX & Frontend",
+                    ],
+                    "Details": [
+                        "Automated parsers and data pipelines with Pandas",
+                        "End-to-end web applications using Python and Streamlit",
+                        "Plotly maps, GeoJSON, and geographic data transformation",
+                        "Working with relational databases and Google Sheets",
+                        "Cross-platform mobile development with React Native and Expo",
+                        "Interactive reports, dashboards, and accessible interfaces",
+                    ],
+                }
+            )
+            fig = px.line_polar(
+                skills,
+                r="r",
+                theta="theta",
+                line_close=True,
+                hover_data={"r": False, "theta": False, "Details": True},
+            )
+            fig.update_traces(
+                fill="toself",
+                line_color="#0ea5e9",
+                fillcolor="rgba(14, 165, 233, 0.2)",
+                mode="lines+markers",
+                marker=dict(size=8, color="#38bdf8"),
+                hovertemplate="<b>%{theta}</b><br>%{customdata[0]}<extra></extra>",
+            )
+            fig.update_layout(
+                paper_bgcolor="rgba(0,0,0,0)",
+                plot_bgcolor="rgba(0,0,0,0)",
+                font_color="#f8fafc",
+                polar=dict(
+                    bgcolor="rgba(0,0,0,0)",
+                    radialaxis=dict(visible=False),
+                    angularaxis=dict(linecolor="rgba(255,255,255,0.15)"),
+                ),
+                margin=dict(l=35, r=35, t=15, b=20),
+                height=350,
+            )
             st.plotly_chart(fig, use_container_width=True)
 
         with st.container(border=True):
             st.subheader(":material/contact_mail: Contact Me")
-            
             with st.form("contact_form", clear_on_submit=True):
                 name = st.text_input("Your Name")
                 email = st.text_input("Your Email")
-                message = st.text_area("Your Message", height=100)
-                
-                submitted = st.form_submit_button("Send Message", type="primary", use_container_width=True)
-                
-                if submitted:
-                    if not name or not email or not message:
-                        st.warning("⚠️ Please fill out all fields before sending.")
-                    else:
-                        with st.spinner("Transmitting to backend..."):
-                            try:
-                                # Format the email
-                                email_body = f"Name: {name}\nEmail: {email}\n\nMessage:\n{message}"
-                                msg = MIMEText(email_body)
-                                msg['Subject'] = f"New Portfolio Message from {name}"
-                                msg['From'] = st.secrets["EMAIL_USER"]
-                                msg['To'] = "ronjay.1204@gmail.com"
-                                
-                                # Connect to Gmail's secure SMTP server and send
-                                with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
-                                    server.login(st.secrets["EMAIL_USER"], st.secrets["EMAIL_PASS"])
-                                    server.sendmail(st.secrets["EMAIL_USER"], "ronjay.1204@gmail.com", msg.as_string())
-                                    
-                                st.success("✅ Message successfully sent! I will get back to you shortly.")
-                            except Exception as e:
-                                st.error(f"🚨 Server error: {e}")
+                message = st.text_area("Your Message", height=120)
+                submitted = st.form_submit_button(
+                    "Send Message", type="primary", use_container_width=True
+                )
 
-    with c2:
+            if submitted:
+                if not name.strip() or not email.strip() or not message.strip():
+                    st.warning("Please fill out all fields before sending.")
+                elif "@" not in email or "." not in email.split("@")[-1]:
+                    st.warning("Please enter a valid email address.")
+                else:
+                    try:
+                        smtp_user = st.secrets["EMAIL_USER"]
+                        smtp_password = st.secrets["EMAIL_PASS"]
+                        body = f"Name: {name}\nEmail: {email}\n\nMessage:\n{message}"
+                        msg = MIMEText(body)
+                        msg["Subject"] = f"New Portfolio Message from {name}"
+                        msg["From"] = smtp_user
+                        msg["To"] = "ronjay.1204@gmail.com"
+                        msg["Reply-To"] = email.strip()
+                        with smtplib.SMTP_SSL("smtp.gmail.com", 465, timeout=20) as server:
+                            server.login(smtp_user, smtp_password)
+                            server.sendmail(smtp_user, [msg["To"]], msg.as_string())
+                        st.success("Message sent successfully. Thank you!")
+                    except Exception:
+                        st.error(
+                            "The contact form is temporarily unavailable. "
+                            "Please email me using the link in the sidebar."
+                        )
+
+    with col_right:
         with st.container(border=True):
             st.subheader(":material/memory: Technical Stack")
-            
             st.markdown("#### Languages & Frameworks")
-            st.markdown("""
-            <div style="margin-bottom: 15px;">
-                <span class="tech-pill">Python</span>
-                <span class="tech-pill">Streamlit</span>
-                <span class="tech-pill">React Native</span>
-                <span class="tech-pill">Expo</span>
-                <span class="tech-pill">SQL</span>
-                <span class="tech-pill">JavaScript</span>
-            </div>
-            """, unsafe_allow_html=True)
-            
+            pills(["Python", "Streamlit", "React Native", "Expo", "SQL", "JavaScript"])
             st.markdown("#### Data Engineering & Analytics")
-            st.markdown("""
-            <div style="margin-bottom: 15px;">
-                <span class="tech-pill">Pandas</span>
-                <span class="tech-pill">Plotly Express</span>
-                <span class="tech-pill">OpenCV</span>
-                <span class="tech-pill">MediaPipe</span>
-                <span class="tech-pill">ETL Pipelines</span>
-            </div>
-            """, unsafe_allow_html=True)
-            
+            pills(["Pandas", "Plotly Express", "OpenCV", "MediaPipe", "ETL Pipelines"])
             st.markdown("#### Databases & Infrastructure")
-            st.markdown("""
-            <div style="margin-bottom: 15px;">
-                <span class="tech-pill">PostgreSQL</span>
-                <span class="tech-pill">Supabase</span>
-                <span class="tech-pill">Google Sheets API</span>
-                <span class="tech-pill">Git / GitHub</span>
-            </div>
-            """, unsafe_allow_html=True)
-            
+            pills(["PostgreSQL", "Supabase", "Google Sheets API", "Git / GitHub"])
             st.markdown("#### Design & Multimedia")
-            st.markdown("""
-            <div>
-                <span class="tech-pill">Canva</span>
-                <span class="tech-pill">Figma</span>
-                <span class="tech-pill">Premiere Pro</span>
-                <span class="tech-pill">UI/UX Auditing</span>
-            </div>
-            """, unsafe_allow_html=True)
-            
+            pills(["Canva", "Figma", "Premiere Pro", "UI/UX Auditing"])
+
         with st.container(border=True):
             st.subheader(":material/forum: Frequently Asked Questions")
-            
             with st.expander("Working hours and timezone?"):
-                st.write("I am based in the Philippines (GMT+8). I offer highly flexible working hours and can easily overlap with your team's local timezone to ensure seamless, real-time communication.")
-                
+                st.write(
+                    "I am based in the Philippines (GMT+8) and can coordinate "
+                    "across time zones for project-based work."
+                )
             with st.expander("How do you handle data privacy and security?"):
-                st.write("Coming from a background in provincial health data management, I adhere to strict data privacy protocols. I design my applications with role-based access control, secure hashed credentials, and encrypted database connections to ensure sensitive metrics are always protected.")
-                
+                st.write(
+                    "I bring a public-health data management background to projects "
+                    "that require careful access controls, responsible data handling, "
+                    "and secure storage of credentials."
+                )
             with st.expander("Can you handle end-to-end development?"):
-                st.write("Absolutely. I manage the entire software lifecycle—from architecting the initial database schema and building automated ETL pipelines, to designing the frontend UI and deploying the final web application.")
-
+                st.write(
+                    "Yes. I can work from requirements and data workflows through "
+                    "implementation, testing, deployment, training, and troubleshooting."
+                )
             with st.expander("Approach to AI-assisted coding?"):
-                st.write("I leverage AI as a force multiplier to rapidly construct boilerplate logic, troubleshoot complex SQL queries, and optimize edge-case debugging. This allows me to work faster and focus my engineering efforts on secure, high-level system architecture.")
+                st.write(
+                    "I use AI to speed up prototyping, debugging, and documentation "
+                    "while remaining responsible for reviewing and testing the final result."
+                )
 
-# ==========================================
-# PAGE 2: PROJECTS & APPLICATIONS
-# ==========================================
+
+# -----------------------------------------------------------------------------
+# PROJECTS & APPS
+# -----------------------------------------------------------------------------
 elif st.session_state.page == "projects":
     st.title(":material/code_blocks: Projects & Applications")
-    st.write("An archive of my enterprise dashboards, standalone software engineering projects, and data visualization architecture.")
-    st.markdown("<br>", unsafe_allow_html=True)
-    
-    st.markdown("### Tier 1: Enterprise Data Systems")
-    
-    # --- ABRA NIP MONITORING INFORMATION SYSTEM ---
-    with st.container(border=True):
-        st.header("Abra NIP Monitoring Information System")
-        st.markdown("<span class='project-status'>Provincial Public Health System · v5.22.3</span>", unsafe_allow_html=True)
-        st.markdown("<span class='tech-stack'>Python • Streamlit • Pandas • Plotly • Excel Reporting Workbooks • Database Integrations</span>", unsafe_allow_html=True)
-        st.write(
-            "Designed and developed a provincial immunization monitoring platform supporting "
-            "27 Rural Health Units (RHUs) across Abra. The system brings together campaign "
-            "monitoring, reporting workflows, administrative controls, and data validation "
-            "for Measles-Rubella and School-Based Immunization activities."
-        )
-        st.markdown(
-            "**Key capabilities:** Offline-first SBI reporting through standardized Excel "
-            "workbooks organized by activity date, school, and grade; RHU workbook uploads "
-            "and corrections; campaign and submission monitoring; role-based access; "
-            "and summaries formatted for VaccTrack reconciliation."
-        )
+    st.write(
+        "Selected public health systems, delivered client applications, "
+        "software engineering projects, and data visualization work."
+    )
+    st.write("")
+    st.markdown("### Tier 1: Enterprise Data Systems & Client Solutions")
 
-    # --- PESU PORTAL ---
-    with st.container(border=True):
-        st.header("Abra PESU Surveillance Portal")
-        st.markdown("<span class='tech-stack'>Python • Streamlit • Pandas • Plotly • Google Sheets API • Cryptography</span>", unsafe_allow_html=True)
-        st.write("Engineered a secure epidemiological surveillance portal to monitor Dengue and Tuberculosis (DSTB, DRTB, MN, TPT, HIV) outbreaks across 27 municipalities. Features role-based access control with hashed credentials and an admin approval matrix. The system automatically computes Year-Over-Year (YOY) variance, generates dynamic clinical classifications, builds population pyramids, and utilizes predictive cross-tabulation algorithms for 'Clustering Barangay' detection. Integrated advanced Plotly choropleth maps with custom vector coordinate nudging to eliminate label collisions.")
-        
-    # --- SIA 2026 DASHBOARD ---
-    with st.container(border=True):
-        st.header("National Immunization Program: SIA 2026 Command Center")
-        st.markdown("<span class='tech-stack'>Python • Streamlit • Supabase (PostgreSQL) • AgGrid • Plotly Express</span>", unsafe_allow_html=True)
-        st.write("Developed a real-time provincial command center for the 2026 Measles-Rubella and Vitamin A vaccination campaign. Engineered a robust backend integration that bypasses Supabase pagination limits to securely upsert target databases. Features an automated discrepancy reconciliation engine comparing official 'VaccTrack' exports against live RHU submissions via AgGrid. The application generates dynamic daily tally sheets and supports ultra-high-resolution map exports specifically configured for official print layouts.")
-        
-    # --- FHSIS COMMAND CENTER ---
-    with st.container(border=True):
-        st.header("Abra FHSIS Command Center")
-        st.markdown("<span class='tech-stack'>Python • Streamlit • Pandas • Plotly Express</span>", unsafe_allow_html=True)
-        st.write("Architected a massive, modular reporting engine that automatically ingests, cleans, and visualizes Field Health Services Information System (FHSIS) data. Built an 'auto-healing' ETL pipeline that dynamically standardizes headers and bypasses broken DOH Excel templates with zero manual intervention. Includes complex linkage-to-care cascade funnels, CPR calculations, and automated data quality audits to flag statistical anomalies before database entry.")
-        st.link_button("View FHSIS Dashboard", "https://abra-fhsis.streamlit.app/")
-        
-    # --- VACCINE INVENTORY ---
-    with st.container(border=True):
-        st.header("Vaccine Logistics & Inventory Matrix")
-        st.markdown("<span class='tech-stack'>Python • Streamlit • Pandas • Google Cloud APIs</span>", unsafe_allow_html=True)
-        st.write("Transformed complex, error-prone 2D spreadsheet matrices into a searchable, relational logistics database. Tracks cold chain stock limits, batch expiries, and alerts administrators to critical stockouts across the provincial network.")
+    project_card(
+        title="Abra NIP Monitoring Information System",
+        status="Provincial Public Health System | 27 RHUs",
+        stack="Python • Streamlit • Pandas • Excel Reporting • Data Validation • Dashboard Analytics",
+        summary=(
+            "Designed and developed a provincial immunization monitoring information system "
+            "supporting the 27 Rural Health Units (RHUs) of Abra. Combines campaign "
+            "configuration, immunization data reporting, monitoring, and administrative "
+            "workflows in one platform."
+        ),
+        highlights=(
+            "Role-based access for RHU users and administrators; an offline-first "
+            "School-Based Immunization (SBI) Excel workbook organized by activity date, "
+            "school, and grade; upload and correction workflows; campaign submission "
+            "and finalization monitoring; data quality checks and VaccTrack reconciliation."
+        ),
+        note="Operational health reporting system; private records and credentials are not shown.",
+    )
 
-    st.markdown("<br>", unsafe_allow_html=True)
+    project_card(
+        title="SSS Auto FOD — Document Archiving & Retrieval System",
+        status="Paid Freelance Client Project | SSS Bangued Branch",
+        stack="Python • Excel Processing • Document Indexing • Local Data Storage • Windows Deployment",
+        summary=(
+            "Built and delivered a custom document archiving and retrieval solution for "
+            "the Social Security System (SSS) Bangued Branch. The software turns "
+            "transmittal spreadsheets into searchable, organized records and helps staff "
+            "find physical documents through their assigned storage locations."
+        ),
+        highlights=(
+            "Transmittal import and document classification; searchable records; "
+            "warehouse and shelf visualization; document retrieval workflow; "
+            "duplicate-transmittal detection; local installation and client support."
+        ),
+        note="Commercially delivered as a private client solution; source code and client data are not publicly shared.",
+    )
+
+    project_card(
+        title="Abra PESU Surveillance Portal",
+        stack="Python • Streamlit • Pandas • Plotly • Google Sheets API • Cryptography",
+        summary=(
+            "Engineered an epidemiological surveillance portal to support provincial "
+            "monitoring of communicable diseases, including dengue and tuberculosis, "
+            "with interactive visualizations and data-management workflows."
+        ),
+        highlights=(
+            "Role-based access; automated reporting summaries; year-over-year "
+            "comparisons; epidemiological data cleaning; and Plotly geospatial "
+            "visualizations using custom GeoJSON boundaries."
+        ),
+    )
+
+    project_card(
+        title="National Immunization Program: SIA 2026 Command Center",
+        stack="Python • Streamlit • Supabase (PostgreSQL) • AgGrid • Plotly Express",
+        summary=(
+            "Developed a provincial monitoring dashboard for the 2026 Measles-Rubella "
+            "and Vitamin A campaign, with a reporting database and visualizations "
+            "for local health program monitoring."
+        ),
+        highlights=(
+            "Campaign data uploads, RHU reporting summaries, VaccTrack comparison, "
+            "discrepancy checking, daily tallies, and map-based presentation."
+        ),
+    )
+
+    project_card(
+        title="Abra FHSIS Command Center",
+        stack="Python • Streamlit • Pandas • Plotly Express",
+        summary=(
+            "Built a modular reporting and visualization tool for Field Health Services "
+            "Information System (FHSIS) data, reducing manual spreadsheet cleanup."
+        ),
+        highlights=(
+            "Automated data ingestion, resilient header standardization, "
+            "indicator summaries, and data quality checks."
+        ),
+        url="https://abra-fhsis.streamlit.app/",
+    )
+
+    project_card(
+        title="Vaccine Logistics & Inventory Matrix",
+        stack="Python • Streamlit • Pandas • Google Sheets API",
+        summary=(
+            "Converted hard-to-read vaccine inventory spreadsheets into a searchable "
+            "dashboard for provincial logistics tracking."
+        ),
+        highlights="Stock visibility, vaccine batch expiry tracking, and stockout monitoring.",
+    )
+
+    st.write("")
     st.markdown("### Tier 2: Software Engineering")
-    
-    # --- SSS BANGUED AUTO FOD ---
-    with st.container(border=True):
-        st.header("SSS Auto FOD — Document Archiving & Retrieval System")
-        st.markdown("<span class='project-status'>Delivered Client Project · SSS Bangued</span>", unsafe_allow_html=True)
-        st.markdown("<span class='tech-stack'>Python • Excel Processing • Local Data Storage • Windows Desktop Deployment</span>", unsafe_allow_html=True)
-        st.write(
-            "Built and delivered a custom document archiving and retrieval application "
-            "for the SSS Bangued Branch. It converts transmittal spreadsheets into "
-            "organized document records and connects digital searches with physical "
-            "shelf and storage locations."
+    sw_left, sw_right = st.columns(2, gap="medium")
+    with sw_left:
+        project_card(
+            title="Gesture Control Engine",
+            stack="Python • OpenCV • MediaPipe • PyAutoGUI",
+            summary=(
+                "Built a webcam-based computer vision prototype that tracks hand "
+                "gestures to control common mouse actions."
+            ),
         )
-        st.markdown(
-            "**Key capabilities:** Automated transmittal import and document classification; "
-            "searchable records and shelf visualization; retrieval workflows; "
-            "and duplicate-transmittal detection to help prevent repeated imports."
+    with sw_right:
+        project_card(
+            title="Mobile Station Mapper",
+            stack="React Native • Expo • Google Maps API",
+            summary=(
+                "Developed a mobile mapping prototype for finding fuel stations "
+                "and supporting motorcycle route planning."
+            ),
         )
-        st.caption("Privately deployed for a client; source code and client records are not shared publicly.")
 
-    # --- SOFTWARE PROJECTS ---
-    c_sw1, c_sw2 = st.columns(2)
-    with c_sw1:
-        with st.container(border=True):
-            st.header("Gesture Control Engine")
-            st.markdown("<span class='tech-stack'>Python • OpenCV • MediaPipe • PyAutoGUI</span>", unsafe_allow_html=True)
-            st.write("Compiled a standalone Python computer vision program featuring zero-latency hand tracking and facial detection to emulate complete mouse controls and secure user inputs via standard webcams.")
-    with c_sw2:
-        with st.container(border=True):
-            st.header("Mobile Station Mapper")
-            st.markdown("<span class='tech-stack'>React Native • Expo • Google Maps API</span>", unsafe_allow_html=True)
-            st.write("Programmed a mobile iOS/Android application utilizing GPS mapping arrays to track routes, locate gasoline stations, and calculate real-time fuel parameters for motorcycle touring.")
-
-    st.markdown("<br>", unsafe_allow_html=True)
+    st.write("")
     st.markdown("### Tier 3: Frontend Design & Multimedia")
-    
     with st.container(border=True):
-        st.markdown("##### Vector Cartography & Public Health Layouts")
-        st.write("Beyond code, I maintain a strong competency in UI/UX and graphic design. I conceptualize and design high-impact vector maps, executive PowerPoint decks, and large-scale print layouts (Tarpaulins) for official DRRM-H planning and DOH regional health events using Canva and Adobe Premiere Pro.")
+        st.subheader("Vector Cartography & Public Health Layouts")
+        st.write(
+            "I also work on interface design, print-ready geographic maps, "
+            "PowerPoint presentations, and large-format event materials for "
+            "public health programs using Canva and multimedia tools."
+        )
 
-# ==========================================
-# PAGE 3: PROFESSIONAL EXPERIENCE
-# ==========================================
+
+# -----------------------------------------------------------------------------
+# PROFESSIONAL EXPERIENCE
+# -----------------------------------------------------------------------------
 elif st.session_state.page == "experience":
     st.title(":material/work_history: Professional Experience")
-    st.write("A timeline of my professional roles, highlighting my transition from financial data operations to lead public health database engineering.")
-    st.markdown("<br>", unsafe_allow_html=True)
-    
-    with st.container(border=True):
-        st.markdown('<div class="job-title">Data Controller III</div>', unsafe_allow_html=True)
-        st.markdown('<div class="job-company">Department of Health (DOH) CHD CAR - Provincial DOH Office Abra</div>', unsafe_allow_html=True)
-        st.markdown('<div class="job-date">2021 – Present</div>', unsafe_allow_html=True)
-        st.markdown("""
-        * **Database Architecture & Aggregation:** Lead the consolidation, cleaning, and administration of massive public health datasets across 27 municipalities, tracking Covid-19, supplementary, and routine immunization programs.
-        * **ETL & Automation:** Engineered automated reporting workflows using Python to replace highly manual Excel operations, drastically reducing reporting latency and eliminating data-entry redundancies.
-        * **Data Integrity & Auditing:** Serve as the final technical gatekeeper for regional reporting, conducting rigorous data quality audits to enforce strict statistical accuracy and data privacy compliance.
-        * **Systems Deployment:** Set the provincial standard for digital reporting by consistently achieving first-in-region submission metrics out of six provinces.
-        """)
+    st.write(
+        "A timeline of my professional roles and independent software development work."
+    )
+    st.write("")
 
-    with st.container(border=True):
-        st.markdown('<div class="job-title">Junior Microfinance Officer</div>', unsafe_allow_html=True)
-        st.markdown('<div class="job-company">ASA Philippines Foundation, Inc.</div>', unsafe_allow_html=True)
-        st.markdown('<div class="job-date">2018 – 2021</div>', unsafe_allow_html=True)
-        st.markdown("""
-        * **Financial Data Operations:** Oversaw the full accounting cycle, managing initial data collection, document processing, and the closing of strict financial ledgers.
-        * **Risk & Portfolio Management:** Executed precise audits on client loan portfolios to minimize institutional risk and ensure compliance with microfinance regulations.
-        * **Award Recognition:** Awarded *Employee of the Month*, *Best in Loan Portfolio*, and *Best in Recruitment* for maintaining flawless ledger accuracy and exceeding key performance indicators.
-        """)
-        
-    with st.container(border=True):
-        st.markdown('<div class="job-title">Stock Clerk</div>', unsafe_allow_html=True)
-        st.markdown('<div class="job-company">SM Supermarket Baguio</div>', unsafe_allow_html=True)
-        st.markdown('<div class="job-date">2018</div>', unsafe_allow_html=True)
-        st.markdown("""
-        * **Logistics & Inventory Management:** Maintained digital and physical stock databases to ensure accurate tracking, proper stock rotation, and real-time inventory counts.
-        """)
+    experience_card(
+        position="Freelance Software Developer",
+        organization="Self-Employed | Client: Social Security System (SSS), Bangued Branch",
+        dates="July 2026 – Present | Project-Based / Freelance",
+        responsibilities=[
+            (
+                "Paid Client Delivery",
+                "Designed, developed, and delivered the SSS Auto FOD document archiving "
+                "and retrieval system as an independent software-development engagement.",
+            ),
+            (
+                "Workflow Automation",
+                "Implemented Excel transmittal imports, record organization, "
+                "document classification, and duplicate detection.",
+            ),
+            (
+                "Document Search & Retrieval",
+                "Developed record search, storage-location lookup, and visual shelf tracking "
+                "to support physical file retrieval.",
+            ),
+            (
+                "Deployment & Client Support",
+                "Set up the application for local Windows use, performed troubleshooting "
+                "and refinements, and prepared user guidance.",
+            ),
+        ],
+    )
+
+    experience_card(
+        position="Data Controller III",
+        organization="Department of Health (DOH) CHD CAR — Provincial DOH Office of Abra",
+        dates="2021 – Present",
+        responsibilities=[
+            (
+                "Data Consolidation",
+                "Consolidate, clean, and maintain public health datasets from 27 RHUs "
+                "for routine and supplemental immunization and disease surveillance.",
+            ),
+            (
+                "Reporting & Automation",
+                "Develop automated dashboards, reporting workflows, and data-cleaning "
+                "tools using Python and spreadsheets.",
+            ),
+            (
+                "Quality Assurance",
+                "Validate submissions, reconcile reporting discrepancies, and provide "
+                "technical assistance to local reporting staff.",
+            ),
+            (
+                "Systems Development",
+                "Designed and improved provincial monitoring tools including the "
+                "Abra NIP Monitoring Information System and the Abra PESU dashboard.",
+            ),
+        ],
+    )
+
+    experience_card(
+        position="Junior Microfinance Officer",
+        organization="ASA Philippines Foundation, Inc.",
+        dates="2018 – 2021",
+        responsibilities=[
+            (
+                "Financial Data Operations",
+                "Managed client records, financial document processing, and ledger reporting.",
+            ),
+            (
+                "Portfolio Management",
+                "Reviewed loan portfolios and maintained accurate collection records.",
+            ),
+            (
+                "Recognition",
+                "Received Employee of the Month, Best in Loan Portfolio, "
+                "and Best in Recruitment awards.",
+            ),
+        ],
+    )
+
+    experience_card(
+        position="Stock Clerk",
+        organization="SM Supermarket Baguio",
+        dates="2018",
+        responsibilities=[
+            (
+                "Inventory Control",
+                "Maintained physical and digital stock records, performed stock counts, "
+                "and supported stock rotation.",
+            ),
+        ],
+    )
 
     with st.container(border=True):
         st.markdown('<div class="job-title">Bachelor of Science in Information Technology</div>', unsafe_allow_html=True)
         st.markdown('<div class="job-company">Divine Word College of Bangued</div>', unsafe_allow_html=True)
         st.markdown('<div class="job-date">2014 – 2018</div>', unsafe_allow_html=True)
-        st.write("Graduated with a core focus on programming, database management, systems analysis, and network architecture.")
+        st.write(
+            "Coursework focused on programming, databases, systems analysis, "
+            "and computer networking."
+        )
